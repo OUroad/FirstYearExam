@@ -1,0 +1,90 @@
+---
+title: "Covid 19 Variant Data"
+author: "Hetian Su, A14553328"
+format: pdf
+editor: visual
+---
+
+## Import Covid 19 Dataset
+
+```{r}
+# Read in the csv file and inspect the overall info and structure of the file
+covid_file <- "~/BGGN213/BGGN213_github/covid19_variants.csv"
+covid_data = read.csv(covid_file)
+head(covid_data)
+```
+
+## Generate Figre
+
+Load relevant packages and preprocess the dataset
+
+```{r message=FALSE}
+# generate plot with ggplot2
+#install.packages('ggplot2')
+library(ggplot2)
+
+# process the dataset with dplyr
+# install.packages('dplyr')
+library(dplyr)
+
+# use dplyr filter function to remove record of "total" and 'Others"
+strain_data <- covid_data %>% filter(!variant_name %in% c('Total', 'Other'))
+```
+
+Make the figure utilizing ggplot2
+
+```{r warning=FALSE}
+# set the r system time display to english
+Sys.setlocale('LC_TIME', 'English')
+
+# make the plot using ggplot
+ggplot(strain_data)+
+  
+  # convert the date to r date format and map to x
+  # map percentage data to y
+  # group and color the lines by strain
+  aes(x=as.Date(date),            
+      y=percentage,               
+      group=variant_name, color=variant_name)+
+  
+  # use the line plot format
+  geom_line()+                    
+  
+  # create an annotation for showing data source
+  # specify x coordinate in date format
+  # specify y coordinate
+  # reduce the font size
+  annotate('text',                
+           x=as.Date('12/01/2021', format='%m/%d/%Y'),   
+           y=-35,                 
+           label='Data Source:<https://www.cdph.ca.gov/>', 
+           size=3)+               
+  
+  # let the plot focus on y range from 0 to 100
+  # turn off clip to show the annotation
+  coord_cartesian(ylim=c(0,100),  
+                  clip = 'off')+  
+  
+  # specify y label
+  ylab('Percentage of sequenced specimens')+   
+  
+  # remove x label
+  # show xticklabel every 1 month
+  # specify xticklabel format
+  # specify x range in data format
+  scale_x_date(name = '',                       
+               date_breaks = '1 month',         
+               date_labels = ('%b %Y'), 
+               limits = as.Date(c('01/01/2021','05/01/2022'),format='%m/%d/%Y'))+
+  
+  # specify title of the figure
+  labs(title='Covid-19 Variants in California', ylab)+ 
+  
+  # set theme to black and white
+  theme_bw()+                                            
+  
+  # rotate and reposition xticklabels
+  # remove the legend label
+  theme(axis.text.x = (element_text(angle = 45, vjust = 1, hjust = 1)),
+        legend.title = element_blank())                  
+```
